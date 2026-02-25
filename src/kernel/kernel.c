@@ -6,6 +6,84 @@
 #include "../include/tty.h"
 #include "../include/vga.h"
 
+static void print_info_color_blocks(void) {
+	enum vga_color palette[] = {
+		VGA_COLOR_BLACK, VGA_COLOR_RED, VGA_COLOR_GREEN, VGA_COLOR_BROWN,
+		VGA_COLOR_BLUE, VGA_COLOR_MAGENTA, VGA_COLOR_CYAN, VGA_COLOR_LIGHT_GREY,
+		VGA_COLOR_DARK_GREY, VGA_COLOR_LIGHT_RED, VGA_COLOR_LIGHT_GREEN, VGA_COLOR_LIGHT_BROWN,
+		VGA_COLOR_LIGHT_BLUE, VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_LIGHT_CYAN, VGA_COLOR_WHITE
+	};
+
+	for (size_t i = 0; i < sizeof(palette) / sizeof(palette[0]); i++) {
+		terminal_setcolor(vga_entry_color(palette[i], VGA_COLOR_BLACK));
+		terminal_putchar((char)219);
+		terminal_putchar((char)219);
+	}
+	terminal_putchar('\n');
+}
+
+static void print_info_ascii_art(void) {
+	uint8_t prev_color = terminal_getcolor();
+	uint8_t art_color = vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK);
+	uint8_t info_color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
+
+	printf("\n");
+	terminal_setcolor(art_color);
+	printf("   3141592653589793238462643");
+	terminal_setcolor(info_color);
+	printf("\n");
+
+	terminal_setcolor(art_color);
+	printf("  38   327    950                         ");
+	terminal_setcolor(info_color);
+	printf("OS: pi-OS\n");
+	
+
+	terminal_setcolor(art_color);
+	printf(" 2     884    197                         ");
+	terminal_setcolor(info_color);
+	printf("Version: 0.1-dev\n");
+	
+
+	terminal_setcolor(art_color);
+	printf("       169     399                        ");
+	terminal_setcolor(info_color);
+	printf("Kernel: 32-bit freestanding\n");
+	
+
+	terminal_setcolor(art_color);
+	printf("      375      105                        ");
+	terminal_setcolor(info_color);
+	printf("Shell: builtin CLI + calc mode\n");
+	
+
+	terminal_setcolor(art_color);
+	printf("      820      9749                       ");
+	terminal_setcolor(info_color);
+	printf("Author: 0xGifre\n");
+	
+
+	terminal_setcolor(art_color);
+	printf("     4459       2307      81  ");
+	terminal_setcolor(info_color);
+	printf("\n");
+
+
+	terminal_setcolor(art_color);
+	printf("    64062        862089986              ");
+	terminal_setcolor(info_color);
+	terminal_setcolor(info_color);
+	print_info_color_blocks();
+	terminal_setcolor(prev_color);
+	
+
+	terminal_setcolor(art_color);
+	printf("    2803          482534");
+	terminal_setcolor(info_color);
+	printf("\n");
+
+}
+
 static void print_calc_help(void) {
 	printf("List of available operations:\n");
 	printf("ADD          Addition.\n");
@@ -117,8 +195,13 @@ static void execute_command(char* line) {
 		printf("CALC                    Opens a simple calculator.\n");
 		printf("CLEAR                   Calls the screen clearing function.\n");
 		printf("ECHO <text>             Prints the given text.\n");
+		printf("INFO                    Shows system info and ASCII art.\n");
 		printf("RAND                    Prints a random number.\n");
 		printf("RAND -r <min> <max>     Prints a random number in the given range.\n");
+		return;
+	}
+	if (strings_equal(line, "info") || strings_equal(line, "INFO")) {
+		print_info_ascii_art();
 		return;
 	}
 	if (strings_equal(line, "calc")) {
@@ -183,9 +266,9 @@ void kernel_main(void) {
 	char line[128];
 
 	terminal_initialize();
-	printf("Sonarix OS shell\n");
+	print_info_ascii_art();
 	
-	printf("Type 'help' for commands.\n\n");
+	printf("Type 'help' for commands.\n");
 
 	for (;;) {
 		printf("> ");

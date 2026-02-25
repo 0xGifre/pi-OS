@@ -1,6 +1,6 @@
-#include <shell_string.h>
+#include <string.h>
 
-int shell_strings_equal(const char* a, const char* b) {
+int strings_equal(const char* a, const char* b) {
 	while (*a && *b) {
 		if (*a != *b) {
 			return 0;

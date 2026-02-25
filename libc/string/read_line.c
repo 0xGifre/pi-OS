@@ -1,10 +1,10 @@
 #include <stddef.h>
 
 #include <keyboard.h>
-#include <shell_input.h>
+#include <string.h>
 #include <tty.h>
 
-size_t shell_read_line(char* out, size_t capacity) {
+size_t read_line(char* out, size_t capacity) {
 	size_t len = 0;
 	for (;;) {
 		char c = keyboard_read_char();

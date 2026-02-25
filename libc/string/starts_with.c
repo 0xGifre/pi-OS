@@ -1,6 +1,6 @@
-#include <shell_string.h>
+#include <string.h>
 
-int shell_starts_with(const char* text, const char* prefix) {
+int starts_with(const char* text, const char* prefix) {
 	while (*prefix) {
 		if (*text != *prefix) {
 			return 0;

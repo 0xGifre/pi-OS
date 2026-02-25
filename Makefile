@@ -125,8 +125,6 @@ $(KERNEL_ELF): $(OBJS) $(BOOT_DIR)/linker.ld
 $(GRUB_CFG):
 	@mkdir -p $(ISO_GRUB)
 	@printf '%s\n' \
-		'set timeout=0' \
-		'set default=0' \
 		'' \
 		'menuentry "Sonarix OS" {' \
 		'    multiboot /boot/kernel.elf' \

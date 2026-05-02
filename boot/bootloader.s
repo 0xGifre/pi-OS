@@ -26,6 +26,15 @@ stack_top:
 _start:
 	movl $stack_top, %esp
 
+	# Preserve GRUB's Multiboot registers before calling C code.
+	# eax = magic, ebx = multiboot_info.
+	pushl %ebx
+	pushl %eax
+
+	# GRUB enters here in 32-bit protected mode. Install our own GDT so the
+	# kernel does not depend on the bootloader's descriptor table.
+	call gdt_install
+
 	# Transfer control to the main kernel.
 	call kernel_main
 

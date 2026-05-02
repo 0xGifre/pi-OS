@@ -1,0 +1,3 @@
+pi-OS has a tiny initrd archive format now.
+
+The kernel copies these files into the writable RAM filesystem at boot.

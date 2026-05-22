@@ -6,6 +6,7 @@
 #include "../../libc/include/random.h"
 #include "../../libc/include/string.h"
 #include "../include/ide.h"
+#include "../include/io.h"
 #include "../include/multiboot.h"
 #include "../include/tty.h"
 #include "../include/vga.h"
@@ -468,6 +469,44 @@ static void print_calc_help(void) {
 	printf("QUIT         Exit the calculator.\n");
 }
 
+static void halt_cpu_forever(void) {
+	__asm__ volatile ("cli");
+	for (;;) {
+		__asm__ volatile ("hlt");
+	}
+}
+
+static bool wait_keyboard_controller_input_empty(void) {
+	for (uint32_t i = 0; i < 1000000; i++) {
+		if ((inb(0x64) & 0x02) == 0) {
+			return true;
+		}
+	}
+	return false;
+}
+
+static void system_reboot(void) {
+	printf("Rebooting...\n");
+
+	if (wait_keyboard_controller_input_empty()) {
+		outb(0x64, 0xFE);
+	}
+
+	printf("Reboot failed; CPU halted.\n");
+	halt_cpu_forever();
+}
+
+static void system_shutdown(void) {
+	printf("Shutting down...\n");
+
+	outw(0x604, 0x2000);
+	outw(0xB004, 0x2000);
+	outw(0x4004, 0x3400);
+
+	printf("Shutdown failed; CPU halted.\n");
+	halt_cpu_forever();
+}
+
 static bool run_calc_command(char* line) {
 	char* cursor = line;
 	char* cmd = next_token(&cursor);
@@ -576,11 +615,21 @@ static void execute_command(char* line) {
 		printf("RAMFS                   Alias for INITRD.\n");
 		printf("RAND                    Prints a random number.\n");
 		printf("RAND -r <min> <max>     Prints a random number in the given range.\n");
+		printf("REBOOT                  Reboots the machine.\n");
+		printf("SHUTDOWN                Powers off the machine.\n");
 		printf("TOUCH <name>            Creates an empty RAM FS file.\n");
 		printf("WRITE <name> <text>     Writes text to a RAM FS file.\n");
 		printf("CAT <name>              Prints a RAM FS file.\n");
 		printf("RM <name>               Deletes a RAM FS file.\n");
 		printf("SAVEFS                  Saves RAM FS snapshot to disk.\n");
+		return;
+	}
+	if (strings_equal(line, "reboot") || strings_equal(line, "REBOOT")) {
+		system_reboot();
+		return;
+	}
+	if (strings_equal(line, "shutdown") || strings_equal(line, "SHUTDOWN")) {
+		system_shutdown();
 		return;
 	}
 	if (strings_equal(line, "gdt")) {

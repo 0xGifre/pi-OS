@@ -1,4 +1,4 @@
-# Sonarix-OS (simple Meaty-Skeleton-ish Makefile, no .sh)
+# PI OS (simple Meaty-Skeleton-ish Makefile, no .sh)
 # NOTE: Avoid building from a path that contains spaces. GNU make handles spaces poorly.
 
 # -----------------------
@@ -36,7 +36,7 @@ INITRD_IMAGE := $(ISO_BOOT)/initrd.bin
 INITRD_TOOL  := $(BUILD_DIR)/tools/mkinitrd
 
 KERNEL_ELF := $(BUILD_DIR)/kernel.elf
-ISO_IMAGE  := $(BUILD_DIR)/sonarix.iso
+ISO_IMAGE  := $(BUILD_DIR)/pi-os.iso
 DISK_IMAGE := $(BUILD_DIR)/disk.img
 
 # -----------------------
@@ -44,6 +44,7 @@ DISK_IMAGE := $(BUILD_DIR)/disk.img
 # -----------------------
 CFLAGS ?=
 CFLAGS += -ffreestanding -m32 -fno-pie -fno-stack-protector -nostdlib \
+          -mno-sse -mno-sse2 -mno-mmx -mfpmath=387 \
           -D__is_libk \
           -Wall -Wextra -Werror=implicit-function-declaration \
           -I$(SRC_DIR)/include -I$(LIBC_DIR)/include \
@@ -59,7 +60,7 @@ QEMU_DISPLAY ?= -display cocoa,zoom-to-fit=on
 QEMU_WINDOW_WIDTH ?= 800
 QEMU_WINDOW_HEIGHT ?= 450
 QEMU_RESIZE_DELAY ?= 1
-QEMUFLAGS ?= $(QEMU_DISPLAY) -no-reboot -no-shutdown
+QEMUFLAGS ?= $(QEMU_DISPLAY)
 QEMU_ISOFLAGS ?= $(QEMUFLAGS) -boot d
 
 PODMAN        := $(shell command -v podman 2>/dev/null)
@@ -103,11 +104,11 @@ kernel: $(KERNEL_ELF)
 
 iso: $(ISO_IMAGE)
 
-emu-elf:
+emu-elf: $(KERNEL_ELF)
 	@{ sleep $(QEMU_RESIZE_DELAY); osascript -e 'tell application "System Events" to tell process "qemu-system-i386" to set size of front window to {$(QEMU_WINDOW_WIDTH), $(QEMU_WINDOW_HEIGHT)}' >/dev/null 2>&1 || true; } &
 	$(QEMU) $(QEMUFLAGS) -kernel $(KERNEL_ELF)
 
-emu-iso: $(DISK_IMAGE)
+emu-iso:
 	@{ sleep $(QEMU_RESIZE_DELAY); osascript -e 'tell application "System Events" to tell process "qemu-system-i386" to set size of front window to {$(QEMU_WINDOW_WIDTH), $(QEMU_WINDOW_HEIGHT)}' >/dev/null 2>&1 || true; } &
 	$(QEMU) $(QEMU_ISOFLAGS) -drive file=$(DISK_IMAGE),format=raw,if=ide,index=0,media=disk -cdrom $(ISO_IMAGE)
 
@@ -154,7 +155,7 @@ $(GRUB_CFG): FORCE
 	@mkdir -p $(ISO_GRUB)
 	@printf '%s\n' \
 		'' \
-		'menuentry "Sonarix OS" {' \
+		'menuentry "PI OS" {' \
 		'    multiboot /boot/kernel.elf' \
 		'    module /boot/initrd.bin initrd' \
 		'    boot' \

@@ -35,6 +35,14 @@ _start:
 	# kernel does not depend on the bootloader's descriptor table.
 	call gdt_install
 
+	# Floating-point code in the kernel uses the x87 FPU. Make sure the FPU is
+	# enabled and initialized before C code can execute float operations.
+	movl %cr0, %eax
+	andl $0xFFFFFFF3, %eax # clear EM and TS
+	orl $0x22, %eax       # set MP and NE
+	movl %eax, %cr0
+	fninit
+
 	# Transfer control to the main kernel.
 	call kernel_main
 
